@@ -1,0 +1,23 @@
+﻿{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "EasyHud",
+	"Description": "Provides a HUD class with UMG widget management.",
+	"Category": "Other",
+	"CreatedBy": "Stephen Swires",
+	"CreatedByURL": "https://swires.me",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "EasyHud",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
