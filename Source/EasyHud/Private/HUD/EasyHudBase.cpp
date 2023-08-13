@@ -29,12 +29,12 @@ void AEasyHudBase::BeginDestroy()
 
 void AEasyHudBase::CollectWidgetsToLoad(TArray<FSoftObjectPath>& OutAssetsToLoad)
 {
-	for (const TSoftClassPtr<UUserWidget> WidgetClass : PlayerViewportWidgetClasses)
+	for (const TSoftClassPtr<UUserWidget>& WidgetClass : PlayerViewportWidgetClasses)
 	{
 		OutAssetsToLoad.AddUnique(WidgetClass.ToSoftObjectPath());
 	}
 
-	for (const TSoftClassPtr<UUserWidget> WidgetClass : FullScreenWidgetClasses)
+	for (const TSoftClassPtr<UUserWidget>& WidgetClass : FullScreenWidgetClasses)
 	{
 		OutAssetsToLoad.AddUnique(WidgetClass.ToSoftObjectPath());
 	}
@@ -53,7 +53,7 @@ void AEasyHudBase::OnWidgetsAsyncLoaded()
 void AEasyHudBase::SpawnWidgetsFromClasses(const TArray<TSoftClassPtr<UUserWidget>>& WidgetClasses,
 	TArray<TObjectPtr<UUserWidget>>& OutSpawnedWidgets, bool bInFullScreen)
 {
-	for (const TSoftClassPtr<UUserWidget> WidgetClass : WidgetClasses)
+	for (const TSoftClassPtr<UUserWidget>& WidgetClass : WidgetClasses)
 	{
 		TSubclassOf<UUserWidget> LoadedWidgetClass = WidgetClass.Get(); // Get() should resolve here if it was successfully loaded
 
