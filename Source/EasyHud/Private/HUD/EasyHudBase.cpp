@@ -6,17 +6,6 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 
-void FEasyHudWidgetDefinition::SetVisibility(bool bVisible)
-{
-	if (IsValid(WidgetInstance))
-	{
-		const ESlateVisibility DesiredVisibility = bVisible ?
-			DisplayVisibility : ESlateVisibility::Collapsed;
-
-		WidgetInstance->SetVisibility(DesiredVisibility);		
-	}
-}
-
 void AEasyHudBase::BeginPlay()
 {
 	Super::BeginPlay();

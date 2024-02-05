@@ -3,53 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-#include "Components/SlateWrapperTypes.h"
+#include "HUD/EasyHudBaseTypes.h"
 #include "GameFramework/HUD.h"
 #include "EasyHudBase.generated.h"
-
-class UUserWidget;
-
-USTRUCT(BlueprintType)
-struct FEasyHudWidgetDefinition
-{
-	GENERATED_BODY()
-
-	/* Widget class to spawn. */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	TSoftClassPtr<UUserWidget> WidgetClass;
-
-	/*
-	 * Widget visibility to use when widget is shown on screen.
-	 * HitTestInvisible will make it so it's visible on screen but receives no input.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	ESlateVisibility DisplayVisibility = ESlateVisibility::HitTestInvisible;
-
-	/* Is this widget shown by default? */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	bool bVisibleByDefault = true;
-
-	/*
-	 * Is this widget created for each player's viewport?
-	 * If disabled, this makes the widget take the entire screen (even in split screen) and is only created for the
-	 * primary player.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	bool bPerPlayerWidget = true;
-
-	/* Gameplay tag for this widget */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	FGameplayTag WidgetTag;
-
-	/* Created widget instance */
-	UPROPERTY(Transient)
-	UUserWidget* WidgetInstance = nullptr;
-
-	/* Set widget instance visibility */
-	void SetVisibility(bool bVisible);
-	
-};
 
 /**
  *  Provides a simple way of spawning UMG widgets on the screen for use in a HUD.
@@ -79,6 +35,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	TArray<FEasyHudWidgetDefinition> Widgets;
 
+public:
+
+	// Non-mutable accessor
+	const TArray<FEasyHudWidgetDefinition>& GetWidgetDefinitions() const
+	{
+		return Widgets;
+	}
+	
 private:
 
 	// Called from BeginPlay, this starts loading all of our widgets
