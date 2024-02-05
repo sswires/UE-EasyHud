@@ -29,7 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
 	TArray<TSoftClassPtr<UUserWidget>> PlayerViewportWidgetClasses;
 
-	// List of widgets to spawn for the full screen for the primary player.
+	// List of widgets to spawn for the entire screen for the primary player.
 	// This is ignored for the 2nd player and beyond in split screen games.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
 	TArray<TSoftClassPtr<UUserWidget>> FullScreenWidgetClasses;
