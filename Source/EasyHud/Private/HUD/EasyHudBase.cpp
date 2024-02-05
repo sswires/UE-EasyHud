@@ -6,12 +6,12 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 
-void FEasyHudWidgetDefinition::SetVisible(bool bVisible)
+void FEasyHudWidgetDefinition::SetVisibility(bool bVisible)
 {
 	if (IsValid(WidgetInstance))
 	{
 		const ESlateVisibility DesiredVisibility = bVisible ?
-			DefaultVisibility : ESlateVisibility::Collapsed;
+			DisplayVisibility : ESlateVisibility::Collapsed;
 
 		WidgetInstance->SetVisibility(DesiredVisibility);		
 	}
@@ -38,7 +38,7 @@ void AEasyHudBase::ShowHUD()
 	// update widgets to match the state of running the showhud cheat
 	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
-		WidgetDefinition.SetVisible(bShowHUD);
+		WidgetDefinition.SetVisibility(bShowHUD);
 	}
 }
 
@@ -58,7 +58,7 @@ void AEasyHudBase::SetElementsVisible(const FGameplayTagContainer& InTags, bool 
 			continue;
 		}
 		
-		WidgetDefinition.SetVisible(bShowHUD);
+		WidgetDefinition.SetVisibility(bShowHUD);
 	}
 }
 
@@ -99,6 +99,12 @@ void AEasyHudBase::SpawnLoadedWidgets()
 	
 	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
+		if (!WidgetDefinition.bPerPlayerWidget && !bIsPrimaryPlayer)
+		{
+			// we only spawn full screen widgets for the primary player
+			continue;
+		}
+		
 		// Get() should resolve here if it was successfully loaded
 		const TSoftClassPtr<UUserWidget>& WidgetClass = WidgetDefinition.WidgetClass;
 		TSubclassOf<UUserWidget> LoadedWidgetClass = WidgetClass.Get();
@@ -111,28 +117,22 @@ void AEasyHudBase::SpawnLoadedWidgets()
 
 		UUserWidget* CreatedWidget = CreateWidget(GetOwningPlayerController(), LoadedWidgetClass);
 
-		if (WidgetDefinition.bIsFullScreen)
-		{
-			if (!bIsPrimaryPlayer)
-			{
-				// we only spawn full screen widgets for the primary player
-				continue;
-			}
-			
-			CreatedWidget->AddToViewport();
-			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on full screen viewport.", WidgetClass.ToString());
-		}
-		else
+		if (WidgetDefinition.bPerPlayerWidget)
 		{
 			CreatedWidget->AddToPlayerScreen();
 			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on player screen.", WidgetClass.ToString());
 		}
-
-		// set to default visibility
-		CreatedWidget->SetVisibility(WidgetDefinition.DefaultVisibility);
-
+		else
+		{
+			CreatedWidget->AddToViewport();
+			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on full screen viewport.", WidgetClass.ToString());		
+		}
+		
 		// keep track of the spawned widget
 		WidgetDefinition.WidgetInstance = CreatedWidget;
+
+		// set to default visibility
+		WidgetDefinition.SetVisibility(bShowHUD && WidgetDefinition.bVisibleByDefault);
 	}
 }
 

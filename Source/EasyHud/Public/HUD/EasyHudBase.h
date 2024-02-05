@@ -20,19 +20,23 @@ struct FEasyHudWidgetDefinition
 	TSoftClassPtr<UUserWidget> WidgetClass;
 
 	/*
-	 * Widget visibility to default to.
+	 * Widget visibility to use when widget is shown on screen.
 	 * HitTestInvisible will make it so it's visible on screen but receives no input.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	ESlateVisibility DefaultVisibility = ESlateVisibility::HitTestInvisible;
+	ESlateVisibility DisplayVisibility = ESlateVisibility::HitTestInvisible;
+
+	/* Is this widget shown by default? */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
+	bool bVisibleByDefault = true;
 
 	/*
-	 * Is this widget created as a full screen widget?
-	 * If enabled, this makes the widget take the entire screen (even in split screen) and is only created for the
+	 * Is this widget created for each player's viewport?
+	 * If disabled, this makes the widget take the entire screen (even in split screen) and is only created for the
 	 * primary player.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	bool bIsFullScreen = false;
+	bool bPerPlayerWidget = true;
 
 	/* Gameplay tag for this widget */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
@@ -43,7 +47,7 @@ struct FEasyHudWidgetDefinition
 	UUserWidget* WidgetInstance = nullptr;
 
 	/* Set widget instance visibility */
-	void SetVisible(bool bVisible);
+	void SetVisibility(bool bVisible);
 	
 };
 
