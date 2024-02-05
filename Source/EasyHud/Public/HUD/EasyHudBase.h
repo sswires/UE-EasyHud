@@ -19,7 +19,7 @@ struct FEasyHudWidgetDefinition
 	TSoftClassPtr<UUserWidget> WidgetClass;
 
 	/*
-	 * Widget visibility to default to.#
+	 * Widget visibility to default to.
 	 * HitTestInvisible will make it so it's visible on screen but receives no input.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")

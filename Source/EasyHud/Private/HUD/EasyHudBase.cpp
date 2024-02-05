@@ -108,6 +108,9 @@ void AEasyHudBase::SpawnLoadedWidgets()
 			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on player screen.", WidgetClass.ToString());
 		}
 
+		// set to default visibility
+		CreatedWidget->SetVisibility(WidgetDefinition.DefaultVisibility);
+
 		// keep track of the spawned widget
 		WidgetDefinition.WidgetInstance = CreatedWidget;
 	}
