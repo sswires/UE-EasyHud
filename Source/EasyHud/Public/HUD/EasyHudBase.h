@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "EasyHudBase.generated.h"
@@ -30,11 +31,19 @@ struct FEasyHudWidgetDefinition
 	 * If enabled, this makes the widget take the entire screen (even in split screen) and is only created for the
 	 * primary player.
 	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
 	bool bIsFullScreen = false;
+
+	/* Gameplay tag for this widget */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
+	FGameplayTag WidgetTag;
 
 	/* Created widget instance */
 	UPROPERTY(Transient)
-	UUserWidget* WidgetInstance;
+	UUserWidget* WidgetInstance = nullptr;
+
+	/* Set widget instance visibility */
+	void SetVisible(bool bVisible);
 	
 };
 
@@ -56,10 +65,14 @@ public:
 	// Override to hide widgets if the ShowHUD command is run to mimick the behaviour of the command
 	virtual void ShowHUD() override;
 
+	// Function that allows HUD elements to be shown/hidden based on matching a gameplay tags
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void SetElementsVisible(const FGameplayTagContainer& InTags, bool bVisible);
+
 protected:
 	
 	// List of widgets we want as part of this HUD
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	TArray<FEasyHudWidgetDefinition> Widgets;
 
 private:

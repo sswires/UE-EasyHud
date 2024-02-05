@@ -6,6 +6,17 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 
+void FEasyHudWidgetDefinition::SetVisible(bool bVisible)
+{
+	if (IsValid(WidgetInstance))
+	{
+		const ESlateVisibility DesiredVisibility = bVisible ?
+			DefaultVisibility : ESlateVisibility::Collapsed;
+
+		WidgetInstance->SetVisibility(DesiredVisibility);		
+	}
+}
+
 void AEasyHudBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -27,18 +38,27 @@ void AEasyHudBase::ShowHUD()
 	// update widgets to match the state of running the showhud cheat
 	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
-		UUserWidget* WidgetInstance = WidgetDefinition.WidgetInstance;
+		WidgetDefinition.SetVisible(bShowHUD);
+	}
+}
 
-		if (!IsValid(WidgetInstance))
+void AEasyHudBase::SetElementsVisible(const FGameplayTagContainer& InTags, bool bVisible)
+{
+	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
+	{
+		if (!WidgetDefinition.WidgetTag.IsValid())
 		{
+			// invalid tag, ignore
 			continue;
 		}
 
-		const ESlateVisibility DesiredVisibility = bShowHUD ?
-			WidgetDefinition.DefaultVisibility :
-			ESlateVisibility::Collapsed;
-
-		WidgetInstance->SetVisibility(DesiredVisibility);
+		if (!WidgetDefinition.WidgetTag.MatchesAny(InTags))
+		{
+			// no matching tags
+			continue;
+		}
+		
+		WidgetDefinition.SetVisible(bShowHUD);
 	}
 }
 

@@ -13,6 +13,7 @@ public class EasyHud : ModuleRules
 			"Core",
 			"Slate",
 			"SlateCore",
+			"GameplayTags",
 			"UMG",
 		});
         
