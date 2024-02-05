@@ -3,10 +3,40 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/SlateWrapperTypes.h"
 #include "GameFramework/HUD.h"
 #include "EasyHudBase.generated.h"
 
 class UUserWidget;
+
+USTRUCT(BlueprintType)
+struct FEasyHudWidgetDefinition
+{
+	GENERATED_BODY()
+
+	/* Widget class to spawn. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
+	TSoftClassPtr<UUserWidget> WidgetClass;
+
+	/*
+	 * Widget visibility to default to.#
+	 * HitTestInvisible will make it so it's visible on screen but receives no input.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
+	ESlateVisibility DefaultVisibility = ESlateVisibility::HitTestInvisible;
+
+	/*
+	 * Is this widget created as a full screen widget?
+	 * If enabled, this makes the widget take the entire screen (even in split screen) and is only created for the
+	 * primary player.
+	 */
+	bool bIsFullScreen = false;
+
+	/* Created widget instance */
+	UPROPERTY(Transient)
+	UUserWidget* WidgetInstance;
+	
+};
 
 /**
  *  Provides a simple way of spawning UMG widgets on the screen for use in a HUD.
@@ -23,37 +53,29 @@ public:
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;
 
+	// Override to hide widgets if the ShowHUD command is run to mimick the behaviour of the command
+	virtual void ShowHUD() override;
+
 protected:
 	
-	// List of widgets we want to spawn on the player's viewport
+	// List of widgets we want as part of this HUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	TArray<TSoftClassPtr<UUserWidget>> PlayerViewportWidgetClasses;
-
-	// List of widgets to spawn for the entire screen for the primary player.
-	// This is ignored for the 2nd player and beyond in split screen games.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Widgets")
-	TArray<TSoftClassPtr<UUserWidget>> FullScreenWidgetClasses;
-
-	// List of widgets spawned that are attached to the owning player's viewport
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-	TArray<TObjectPtr<UUserWidget>> PlayerViewportWidgets;
-
-	// List of widgets spawned to the screen. This will be only populated for the first local player.
-	UPROPERTY(BlueprintReadOnly, Category = "Widgets")
-	TArray<TObjectPtr<UUserWidget>> FullScreenWidgets;
+	TArray<FEasyHudWidgetDefinition> Widgets;
 
 private:
 
+	// Called from BeginPlay, this starts loading all of our widgets
+	void LoadWidgets();
+
+	// This iterates through the widget definitions and produces an array of assets to load that can be
+	// passed onto the streamable manager
 	void CollectWidgetsToLoad(TArray<FSoftObjectPath>& OutAssetsToLoad);
 
 	// Callback for when the widgets have been loaded, we will spawn instances here.
 	void OnWidgetsAsyncLoaded();
 
-	// Shared logic for spawning widgets from a list of classes
-	void SpawnWidgetsFromClasses(const TArray<TSoftClassPtr<UUserWidget>>& WidgetClasses,
-		TArray<TObjectPtr<UUserWidget>>& OutSpawnedWidgets,
-		bool bInFullScreen
-		);
+	// Creates widgets for the provided definitions. Assumes loaded.
+	void SpawnLoadedWidgets();
 
 	// Cleans up the widgets spawned by this HUD
 	void CleanupWidgets();

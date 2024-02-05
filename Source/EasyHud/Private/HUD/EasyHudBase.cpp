@@ -11,6 +11,39 @@ void AEasyHudBase::BeginPlay()
 	Super::BeginPlay();
 
 	// BeginPlay is the right place to load and spawn the widgets. We should be able to guarantee the game state is ready.
+	LoadWidgets();
+}
+
+void AEasyHudBase::BeginDestroy()
+{
+	CleanupWidgets();
+	Super::BeginDestroy();
+}
+
+void AEasyHudBase::ShowHUD()
+{
+	Super::ShowHUD();
+
+	// update widgets to match the state of running the showhud cheat
+	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
+	{
+		UUserWidget* WidgetInstance = WidgetDefinition.WidgetInstance;
+
+		if (!IsValid(WidgetInstance))
+		{
+			continue;
+		}
+
+		const ESlateVisibility DesiredVisibility = bShowHUD ?
+			WidgetDefinition.DefaultVisibility :
+			ESlateVisibility::Collapsed;
+
+		WidgetInstance->SetVisibility(DesiredVisibility);
+	}
+}
+
+void AEasyHudBase::LoadWidgets()
+{
 	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
 
 	// get list of widgets to load
@@ -21,41 +54,34 @@ void AEasyHudBase::BeginPlay()
 	StreamableManager.RequestAsyncLoad(AssetsToLoad, FStreamableDelegate::CreateUObject(this, &AEasyHudBase::OnWidgetsAsyncLoaded));
 }
 
-void AEasyHudBase::BeginDestroy()
-{
-	CleanupWidgets();
-	Super::BeginDestroy();
-}
-
 void AEasyHudBase::CollectWidgetsToLoad(TArray<FSoftObjectPath>& OutAssetsToLoad)
 {
-	for (const TSoftClassPtr<UUserWidget>& WidgetClass : PlayerViewportWidgetClasses)
+	for (const FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
-		OutAssetsToLoad.AddUnique(WidgetClass.ToSoftObjectPath());
-	}
-
-	for (const TSoftClassPtr<UUserWidget>& WidgetClass : FullScreenWidgetClasses)
-	{
-		OutAssetsToLoad.AddUnique(WidgetClass.ToSoftObjectPath());
+		if (WidgetDefinition.WidgetClass.IsNull())
+		{
+			// ignoring empty entry
+			continue;
+		}
+		
+		OutAssetsToLoad.AddUnique(WidgetDefinition.WidgetClass.ToSoftObjectPath());
 	}
 }
 
 void AEasyHudBase::OnWidgetsAsyncLoaded()
 {
-	SpawnWidgetsFromClasses(PlayerViewportWidgetClasses, PlayerViewportWidgets, false);
-
-	if (GetOwningPlayerController()->IsPrimaryPlayer())
-	{
-		SpawnWidgetsFromClasses(FullScreenWidgetClasses, FullScreenWidgets, true);
-	}
+	SpawnLoadedWidgets();
 }
 
-void AEasyHudBase::SpawnWidgetsFromClasses(const TArray<TSoftClassPtr<UUserWidget>>& WidgetClasses,
-	TArray<TObjectPtr<UUserWidget>>& OutSpawnedWidgets, bool bInFullScreen)
+void AEasyHudBase::SpawnLoadedWidgets()
 {
-	for (const TSoftClassPtr<UUserWidget>& WidgetClass : WidgetClasses)
+	const bool bIsPrimaryPlayer = GetOwningPlayerController()->IsPrimaryPlayer();
+	
+	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
-		TSubclassOf<UUserWidget> LoadedWidgetClass = WidgetClass.Get(); // Get() should resolve here if it was successfully loaded
+		// Get() should resolve here if it was successfully loaded
+		const TSoftClassPtr<UUserWidget>& WidgetClass = WidgetDefinition.WidgetClass;
+		TSubclassOf<UUserWidget> LoadedWidgetClass = WidgetClass.Get();
 
 		if (!LoadedWidgetClass)
 		{
@@ -65,8 +91,14 @@ void AEasyHudBase::SpawnWidgetsFromClasses(const TArray<TSoftClassPtr<UUserWidge
 
 		UUserWidget* CreatedWidget = CreateWidget(GetOwningPlayerController(), LoadedWidgetClass);
 
-		if (bInFullScreen)
+		if (WidgetDefinition.bIsFullScreen)
 		{
+			if (!bIsPrimaryPlayer)
+			{
+				// we only spawn full screen widgets for the primary player
+				continue;
+			}
+			
 			CreatedWidget->AddToViewport();
 			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on full screen viewport.", WidgetClass.ToString());
 		}
@@ -76,25 +108,21 @@ void AEasyHudBase::SpawnWidgetsFromClasses(const TArray<TSoftClassPtr<UUserWidge
 			UE_LOGFMT(LogEasyHud, Verbose, "Spawned '{WidgetClass}' on player screen.", WidgetClass.ToString());
 		}
 
-		OutSpawnedWidgets.Add(CreatedWidget);
+		// keep track of the spawned widget
+		WidgetDefinition.WidgetInstance = CreatedWidget;
 	}
 }
 
 void AEasyHudBase::CleanupWidgets()
 {
-	for (UUserWidget* Widget : PlayerViewportWidgets)
+	for (FEasyHudWidgetDefinition& WidgetDefinition : Widgets)
 	{
-		if (IsValid(Widget))
+		UUserWidget*& WidgetInstance = WidgetDefinition.WidgetInstance;
+		
+		if (IsValid(WidgetInstance))
 		{
-			Widget->RemoveFromParent();
-		}
-	}
-	
-	for (UUserWidget* Widget : FullScreenWidgets)
-	{
-		if (IsValid(Widget))
-		{
-			Widget->RemoveFromParent();
+			WidgetInstance->RemoveFromParent();
+			WidgetInstance = nullptr;
 		}
 	}
 }
