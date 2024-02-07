@@ -32,7 +32,7 @@ public:
 protected:
 	
 	// List of widgets we want as part of this HUD
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (TitleProperty = "WidgetClass"))
 	TArray<FEasyHudWidgetDefinition> Widgets;
 
 public:

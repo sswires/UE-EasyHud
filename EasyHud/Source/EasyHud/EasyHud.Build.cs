@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Stephen Swires. All Rights Reserved.
 
 using UnrealBuildTool;
 
